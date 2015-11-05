@@ -8,7 +8,7 @@ variable "vpc_cidr" {}
 resource "aws_vpc" "vpc_main" {
     cidr_block = "${var.vpc_cidr}"
     tags {
-        Name = "vpc-${var.system_name}"
+        Name = "vpc-main-${var.system_name}"
     }
 }
 
