@@ -1,0 +1,14 @@
+{
+  "ClusterSubnetGroupName": "redshift-cluster-subnet-group-production",
+  "Description": "Redshift Cluster Subnet Group for Production",
+  "SubnetIds": [
+    "subnet-8d2c48fa",
+    "subnet-79328e20"
+  ],
+  "Tags": [
+    {
+      "Key": "Name",
+      "Value": "redshift-cluster-subnet-group-production"
+    }
+  ]
+}

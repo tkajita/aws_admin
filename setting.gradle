@@ -1,0 +1,17 @@
+
+apply plugin: 'groovy'
+
+buildscript {
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        def AwsJavaSdkVersion = '1.10.32'
+
+        classpath "com.amazonaws:aws-java-sdk:${AwsJavaSdkVersion}"
+    }
+}
+
+import com.amazonaws.*;

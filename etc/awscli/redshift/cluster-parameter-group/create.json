@@ -1,0 +1,11 @@
+{
+  "ParameterGroupName": "redshift-cluster-parameter-group-test",
+  "ParameterGroupFamily": "redshift-1.0",
+  "Description": "Redshift Cluster Parameter Group for XXX",
+  "Tags": [
+    {
+      "Key": "Name",
+      "Value": "redshift-cluster-parameter-group-test"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "ParameterGroupName": "redshift-cluster-parameter-group-test",
+  "Parameters": [
+    {
+      "ParameterName": "enable_user_activity_logging",
+      "ParameterValue": "true"
+    },
+    {
+      "ParameterName": "require_ssl",
+      "ParameterValue": "true"
+    }
+  ]
+}
