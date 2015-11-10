@@ -1,0 +1,150 @@
+buildscript {
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        def AwsJavaSdkVersion = '1.10.32'
+
+        classpath "com.amazonaws:aws-java-sdk:${AwsJavaSdkVersion}"
+    }
+}
+
+import com.amazonaws.auth.*
+import com.amazonaws.auth.profile.*
+import com.amazonaws.regions.*
+import com.amazonaws.services.redshift.*
+import com.amazonaws.services.redshift.model.*
+
+ext {
+//    profile = 'sekisan'
+
+    // 開発環境のクラスタ名
+    clusterIdentifier = 'cluster-develop'
+
+    clusterParameterGroupName = ''
+
+    clusterSubnetGroupName = ''
+
+
+    // Redshift Client
+    redshiftService = new AmazonRedshiftClient(new AWSCredentialsProviderChain(
+        new EnvironmentVariableCredentialsProvider(),
+        new SystemPropertiesCredentialsProvider(),
+        new ProfileCredentialsProvider(profile),
+        new ProfileCredentialsProvider(),
+        new InstanceProfileCredentialsProvider()
+    ))
+    redshiftService.setRegion(Region.getRegion(Regions.AP_NORTHEAST_1))
+}
+
+
+// 古くなった 開発環境のSnapshot を削除するタスク
+task aws_clean_snapshots << {
+    // スナップショットの一覧取得
+    def snapshots = redshiftService.describeClusterSnapshots(new DescribeClusterSnapshotsRequest()
+            .withClusterIdentifier(clusterIdentifier)
+            .withSnapshotType("manual")
+    ).snapshots
+        // スナップショットを作成日の新しい順で並べ替え
+        .sort { data1,data2 -> data2.snapshotCreateTime.compareTo(data1.snapshotCreateTime) }
+
+    if (snapshots.size() > 0) {
+        snapshots
+                // 最新のスナップショットをリストから除外
+                .tail()
+                // スナップショットを削除
+                .each {
+
+            println it.snapshotIdentifier }
+    }
+}
+
+// 開発環境を起動するタスク
+task aws_up_dev_cluster << {
+    // スナップショットの一覧取得
+    def snapshots = redshiftService.describeClusterSnapshots(new DescribeClusterSnapshotsRequest()
+            .withClusterIdentifier(clusterIdentifier)
+            .withSnapshotType("manual")
+    ).snapshots
+    // スナップショットを作成日の新しい順で並べ替え
+            .sort { data1,data2 -> data2.snapshotCreateTime.compareTo(data1.snapshotCreateTime) }
+
+    if (snapshots.size() > 0) {
+        // 最新のスナップショットを取得
+        def snapshotIdentifier = snapshots.head().snapshotIdentifier
+
+        // スナップショットから開発環境クラスタを復元
+        println "restore cluster - ${snapshotIdentifier} - 準備中"
+
+//        redshiftService.restoreFromClusterSnapshot(new RestoreFromClusterSnapshotRequest()
+//            .withSnapshotIdentifier(snapshotIdentifier)
+//        )
+
+    } else {
+
+        // スナップショットから開発環境クラスタを復元
+        println "create cluster - ${clusterIdentifier} - 準備中"
+
+        // 開発環境クラスタを新規作成
+        redshiftService.createCluster(new CreateClusterRequest()
+
+                .withClusterIdentifier(clusterIdentifier)
+                .withClusterParameterGroupName(clusterParameterGroupName)
+                .withClusterSubnetGroupName(clusterSubnetGroupName)
+
+//                .withClusterVersion('1.0')
+                .withClusterType('single-node')
+//                .withNumberOfNodes(2)
+                .withNodeType('dc1.large')
+
+                .withAllowVersionUpgrade(false)
+//                .withPreferredMaintenanceWindow(java.lang.String preferredMaintenanceWindow)
+                .withAutomatedSnapshotRetentionPeriod(java.lang.Integer automatedSnapshotRetentionPeriod)
+
+                .withPubliclyAccessible(java.lang.Boolean publiclyAccessible)
+                .withElasticIp(java.lang.String elasticIp)
+
+                .withPort(18263)
+                .withDBName('testdb')
+                .withMasterUsername('testuser')
+                .withMasterUserPassword('testpassword')
+
+                .withVpcSecurityGroupIds(java.lang.String... vpcSecurityGroupIds)
+
+//                .withHsmClientCertificateIdentifier(java.lang.String hsmClientCertificateIdentifier)
+//                .withHsmConfigurationIdentifier(java.lang.String hsmConfigurationIdentifier)
+//                .withKmsKeyId(java.lang.String kmsKeyId)
+
+//                .withEncrypted(java.lang.Boolean encrypted)
+
+//                .withTags(Tag... tags)
+        )
+    }
+}
+
+// 開発環境を停止するタスク
+task aws_down_dev_cluster << {
+
+    try {
+        // 稼働中の開発環境クラスタの取得
+        def runningClusterIdentifier = redshiftService.describeClusters(new DescribeClustersRequest()
+                .withClusterIdentifier(clusterIdentifier)
+        ).clusters.head().clusterIdentifier
+
+        // スナップショットID の生成
+        def snapshotIdentifier = "dev-snapshot-${new Date().time}"
+
+        // 稼働中の開発環境クラスタを停止
+        println "stop cluster - ${runningClusterIdentifier} - ${snapshotIdentifier} - 準備中"
+
+//        redshiftService.deleteCluster(new DeleteClusterRequest()
+//            .withClusterIdentifier(runningClusterIdentifier)
+//            .withFinalClusterSnapshotIdentifier(snapshotIdentifier)
+//        )
+
+    } catch (ClusterNotFoundException e) {
+        println "開発環境クラスタは起動していません"
+    }
+}

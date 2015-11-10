@@ -1,4 +1,6 @@
 .DS_Store
+.gradle/
 .idea
+*.iml
 terraform.tfstate
 terraform.tfstate.backup

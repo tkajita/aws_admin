@@ -1,0 +1,23 @@
+
+apply plugin: "java"
+
+ext {
+
+    lombokVersion = '1.16.2'
+
+    AwsJavaSdkVersion = '1.10.32'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    compile "org.projectlombok:lombok:${lombokVersion}"
+
+    compile "com.amazonaws:aws-java-sdk:${AwsJavaSdkVersion}"
+}
+
+// Javaのコンパイル＆テストの設定
+apply from: file('etc/gradle/aws.gradle')
